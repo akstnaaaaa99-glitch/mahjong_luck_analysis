@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         雀魂 運解析 PoC（牌譜取り出し）
 // @namespace    mlk-poc
-// @version      2026.10.07.2316
+// @version      2026.10.08.0016
 // @description  雀魂の牌譜画面で、受信した牌譜を天鳳JSONに変換する（通信は追加しない）
 // @match        https://game.mahjongsoul.com/*
 // @match        https://mahjongsoul.game.yo-star.com/*
@@ -568,7 +568,7 @@ return state;
 var MLK_UI = (function () {
 'use strict';
 var PANEL_ID = 'mlk-panel';
-var BUILD = '2026.10.07.2316'; // build.py が埋め込む版情報
+var BUILD = '2026.10.08.0016'; // build.py が埋め込む版情報
 var current = null; // {entry, game, tenhou, error}
 function el(tag, attrs, children) {
 var e = document.createElement(tag);

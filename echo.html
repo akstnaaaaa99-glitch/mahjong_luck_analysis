@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>URL 長テスト（受け側）</title>
+<style>
+:root { --bg:#fff; --fg:#1d1d1f; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#16171b; --fg:#ececec; } }
+:root[data-theme="dark"] { --bg:#16171b; --fg:#ececec; }
+body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font:16px/1.7 sans-serif; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script>
+'use strict';
+// 期待する長さ（#n=<数字>& の後に続く文字の数）と、実際に届いた location.hash の長さを比べる
+var m = /^#n=(\d+)&/.exec(location.hash);
+var expected = m ? parseInt(m[1], 10) : null;
+var got = location.hash.length;
+window.mlkEcho = { expected: expected, got: got, href: location.href.length };
+document.getElementById('out').textContent = expected == null ? '受け取るデータがありません'
+  : (got === expected ? 'OK' : 'NG') + '：期待 ' + expected.toLocaleString() + ' 文字 ／ 受信 ' + got.toLocaleString() +
+    ' 文字（URL 全体 ' + location.href.length.toLocaleString() + ' 文字）';
+</script>
+</body>
+</html>

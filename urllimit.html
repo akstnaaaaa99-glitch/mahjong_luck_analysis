@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>URL 長の上限テスト</title>
+<style>
+:root { --bg:#fff; --fg:#1d1d1f; --muted:#666; --ok:#137333; --ng:#c5221f; --line:#ddd; --accent:#2d6cdf; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg:#16171b; --fg:#ececec; --muted:#aaa; --ok:#81c995; --ng:#f28b82; --line:#3a3c42; --accent:#6d9dff; }
+}
+:root[data-theme="dark"] { --bg:#16171b; --fg:#ececec; --muted:#aaa; --ok:#81c995; --ng:#f28b82; --line:#3a3c42; --accent:#6d9dff; }
+body { margin:0 auto; max-width:760px; padding:16px; background:var(--bg); color:var(--fg); font:15px/1.7 sans-serif; }
+h1 { font-size:20px; margin:0 0 8px; }
+button { padding:10px 16px; border:0; border-radius:6px; background:var(--accent); color:#fff; font-size:15px; cursor:pointer; margin:4px 4px 4px 0; }
+table { border-collapse:collapse; width:100%; margin:12px 0; }
+th, td { border-bottom:1px solid var(--line); padding:6px 4px; text-align:left; }
+.ok { color:var(--ok); font-weight:bold; } .ng { color:var(--ng); font-weight:bold; }
+.muted { color:var(--muted); font-size:13px; }
+textarea { width:100%; height:120px; box-sizing:border-box; font:12px monospace; }
+iframe { width:1px; height:1px; border:0; position:absolute; left:-9999px; }
+</style>
+</head>
+<body>
+<h1>URL 長の上限テスト（項目2）</h1>
+<p class="muted">同じサイトの <code>echo.html</code> を、ハッシュ（<code>#</code> 以降）の長さを変えながら開き、欠けずに届くかを確かめます。
+牌譜は使いません（中身は「x」の繰り返し）。実際の牌譜は半荘で約 15〜19KB、圧縮すると約 4〜7KB です。</p>
+
+<button id="auto">自動テストを開始（画面内で順に開く）</button>
+<table><thead><tr><th>ハッシュの長さ</th><th>画面内（iframe）</th><th>新しいタブ</th></tr></thead><tbody id="rows"></tbody></table>
+<p class="muted">「新しいタブ」の列のボタンは、雀魂から「アプリで開く」と同じ開き方（window.open）です。
+自動テストで OK だった最大の長さと、NG になった最小の長さのボタンを押して、開いたタブの表示（OK／NG）を確認してください。</p>
+
+<p>結果（報告用にコピーしてください）</p>
+<textarea id="report" readonly></textarea>
+
+<script>
+'use strict';
+var SIZES = [16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192].map(function (k) { return k * 1024; });
+var results = {};
+
+function hashOf(n) {
+  var head = '#n=' + n + '&';
+  // 期待値の桁数を含めて全体がちょうど n 文字になるよう、残りを x で埋める
+  return head + 'x'.repeat(Math.max(0, n - head.length));
+}
+function label(n) { return n >= 1048576 ? (n / 1048576) + ' MB' : (n / 1024) + ' KB'; }
+
+function renderRows() {
+  document.getElementById('rows').innerHTML = SIZES.map(function (n) {
+    var r = results[n];
+    var cell = !r ? '—' : r.ok ? '<span class="ok">OK</span>' : '<span class="ng">NG</span>（' + r.note + '）';
+    return '<tr><td>' + label(n) + '</td><td>' + cell + '</td><td><button data-n="' + n + '">開く</button></td></tr>';
+  }).join('');
+  document.querySelectorAll('button[data-n]').forEach(function (b) {
+    b.onclick = function () { window.open('echo.html' + hashOf(parseInt(b.dataset.n, 10)), '_blank'); };
+  });
+  var lines = ['ブラウザ: ' + navigator.userAgent];
+  SIZES.forEach(function (n) { if (results[n]) lines.push(label(n) + ': ' + (results[n].ok ? 'OK' : 'NG ' + results[n].note)); });
+  document.getElementById('report').value = lines.join('\n');
+}
+
+function testInIframe(n) {
+  return new Promise(function (resolve) {
+    var f = document.createElement('iframe');
+    var done = false;
+    function finish(r) { if (done) return; done = true; f.remove(); resolve(r); }
+    var timer = setTimeout(function () { finish({ ok: false, note: '10秒で開けず' }); }, 10000);
+    f.onload = function () {
+      clearTimeout(timer);
+      try {
+        var e = f.contentWindow.mlkEcho;
+        if (!e) finish({ ok: false, note: 'ページが開けなかった' });
+        else finish({ ok: e.got === n, note: '受信 ' + e.got.toLocaleString() + ' 文字' });
+      } catch (err) { finish({ ok: false, note: err.message }); }
+    };
+    f.src = 'echo.html' + hashOf(n);
+    document.body.appendChild(f);
+  });
+}
+
+document.getElementById('auto').onclick = function () {
+  var btn = this;
+  btn.disabled = true;
+  results = {};
+  renderRows();
+  SIZES.reduce(function (p, n) {
+    return p.then(function () { return testInIframe(n); }).then(function (r) { results[n] = r; renderRows(); });
+  }, Promise.resolve()).then(function () { btn.disabled = false; });
+};
+renderRows();
+</script>
+</body>
+</html>

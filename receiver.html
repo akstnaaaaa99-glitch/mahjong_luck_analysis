@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>牌譜の受け取りテスト</title>
+<style>
+:root { --bg:#fff; --fg:#1d1d1f; --muted:#666; --box:#f3f4f6; --ok:#137333; --ng:#c5221f; --line:#ddd; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg:#16171b; --fg:#ececec; --muted:#aaa; --box:#24262c; --ok:#81c995; --ng:#f28b82; --line:#3a3c42; }
+}
+:root[data-theme="dark"] { --bg:#16171b; --fg:#ececec; --muted:#aaa; --box:#24262c; --ok:#81c995; --ng:#f28b82; --line:#3a3c42; }
+body { margin:0 auto; max-width:760px; padding:16px; background:var(--bg); color:var(--fg); font:15px/1.7 sans-serif; }
+h1 { font-size:20px; margin:0 0 8px; }
+table { border-collapse:collapse; width:100%; margin:8px 0 16px; }
+th, td { border-bottom:1px solid var(--line); padding:6px 4px; text-align:left; vertical-align:top; word-break:break-all; }
+th { width:38%; color:var(--muted); font-weight:normal; }
+.ok { color:var(--ok); font-weight:bold; } .ng { color:var(--ng); font-weight:bold; }
+.muted { color:var(--muted); font-size:13px; }
+code { background:var(--box); padding:1px 4px; border-radius:4px; }
+</style>
+</head>
+<body>
+<h1>牌譜の受け取りテスト（項目2）</h1>
+<p class="muted">雀魂のパネルの「アプリで開く」から開かれるページです。本実装のアプリの受け口（F-01）の試作を兼ねます。
+受け取ったデータはこの端末の中だけで扱い、どこにも送信しません。</p>
+<div id="status">受け取り待ち…</div>
+<table id="result" hidden></table>
+<div id="kyoku"></div>
+
+<script>
+'use strict';
+// 牌譜を送ってくるページ（雀魂）のオリジン。postMessage はここからのものだけ受け付ける
+var SENDER_ORIGINS = ['https://game.mahjongsoul.com', 'https://mahjongsoul.game.yo-star.com', 'https://game.maj-soul.com'];
+var t0 = performance.now();
+
+function $(id) { return document.getElementById(id); }
+// 他家のニックネームなど外部から来る文字列は、必ずエスケープしてから表示する
+function esc(v) {
+  return String(v).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function b64urlToBytes(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  var bin = atob(s), u = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+
+function inflate(bytes) {
+  var stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Response(stream).text();
+}
+
+function sha12(text) {
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) {
+    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('').slice(0, 12);
+  });
+}
+
+var WINDS = '東南西北';
+function roundLabel(r) { return WINDS[Math.floor(r[0] / 4) % 4] + (r[0] % 4 + 1) + '局' + (r[1] ? ' ' + r[1] + '本場' : ''); }
+
+function show(method, urlLength, text) {
+  var obj;
+  try { obj = JSON.parse(text); } catch (e) { fail('JSON として読めませんでした: ' + e.message); return; }
+  var elapsed = Math.round(performance.now() - t0);
+  sha12(text).then(function (sha) {
+    var rows = [
+      ['受け渡し方式', esc(method)],
+      ['URL の長さ', urlLength == null ? '（URL を使わない方式）' : urlLength.toLocaleString() + ' 文字'],
+      ['JSON の長さ', text.length.toLocaleString() + ' 文字'],
+      ['SHA-256（先頭12桁）', '<code>' + sha + '</code>　← 雀魂のパネルの表示と一致すれば、欠けずに届いています'],
+      ['対局', esc((obj.title || []).join(' ／ '))],
+      ['プレイヤー', esc((obj.name || []).join('・'))],
+      ['局数', (obj.log || []).length + ' 局'],
+      ['拡張フィールド（山の並びなど）', obj.mlk ? 'あり（' + (obj.mlk.paishan || []).filter(Boolean).length + '局分の山）' : 'なし'],
+      ['受け取りにかかった時間', elapsed + ' ms'],
+      ['ブラウザ', esc(navigator.userAgent)]
+    ];
+    $('result').innerHTML = rows.map(function (r) { return '<tr><th>' + r[0] + '</th><td>' + r[1] + '</td></tr>'; }).join('');
+    $('result').hidden = false;
+    $('status').innerHTML = '<span class="ok">受け取りました</span>';
+    $('kyoku').innerHTML = '<p class="muted">各局の結果</p><ol>' + (obj.log || []).map(function (k) {
+      var res = k[16] || [];
+      return '<li>' + esc(roundLabel(k[0])) + '：' + esc(res[0] || '?') + '</li>';
+    }).join('') + '</ol>';
+  });
+  // データを URL に残さない（履歴や共有で牌譜が漏れないように）
+  history.replaceState(null, '', location.pathname + '#received');
+}
+
+function fail(msg) { $('status').innerHTML = '<span class="ng">失敗：</span>' + esc(msg); }
+
+function start() {
+  var hash = location.hash;
+  var urlLength = location.href.length;
+  if (hash.indexOf('#json=') === 0) {
+    var text;
+    try { text = decodeURIComponent(hash.slice(6)); } catch (e) { fail('URL の復元に失敗（途中で切れている可能性）: ' + e.message); return; }
+    show('#json=（URL エンコード）', urlLength, text);
+  } else if (hash.indexOf('#z=') === 0) {
+    if (typeof DecompressionStream === 'undefined') { fail('このブラウザは DecompressionStream に未対応'); return; }
+    var bytes;
+    try { bytes = b64urlToBytes(hash.slice(3)); } catch (e) { fail('base64 の復元に失敗: ' + e.message); return; }
+    inflate(bytes).then(function (t) { show('#z=（deflate 圧縮＋base64url）', urlLength, t); },
+      function (e) { fail('展開に失敗（途中で切れている可能性）: ' + e.message); });
+  } else if (hash === '#pm') {
+    if (!window.opener) { fail('開いた元のページ（window.opener）にアクセスできません'); return; }
+    window.addEventListener('message', function (ev) {
+      if (SENDER_ORIGINS.indexOf(ev.origin) < 0 || !ev.data || ev.data.type !== 'mlk-data') return;
+      show('postMessage（' + ev.origin + ' から）', null, ev.data.json);
+    });
+    // 準備ができたことを開いた元に知らせる（この通知自体にデータは含まない）
+    window.opener.postMessage({ type: 'mlk-ready' }, '*');
+    $('status').textContent = '雀魂のページからのデータを待っています…';
+    setTimeout(function () { if ($('result').hidden) fail('5秒待っても届きませんでした'); }, 5000);
+  } else if (hash === '#received') {
+    $('status').textContent = '受け取り済みのデータは、URL から消してあります（再読み込みでは表示されません）。';
+  } else {
+    $('status').textContent = '受け取るデータがありません。雀魂のパネルの「アプリで開く」から開いてください。';
+  }
+}
+start();
+</script>
+</body>
+</html>

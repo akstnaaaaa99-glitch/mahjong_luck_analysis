@@ -553,7 +553,7 @@ return state;
 var MLK_UI = (function () {
 'use strict';
 var PANEL_ID = 'mlk-panel';
-var BUILD = '2026.10.07.2316'; // build.py が埋め込む版情報
+var BUILD = '2026.10.08.0016'; // build.py が埋め込む版情報
 var current = null; // {entry, game, tenhou, error}
 function el(tag, attrs, children) {
 var e = document.createElement(tag);
