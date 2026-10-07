@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         雀魂 運解析 PoC（牌譜取り出し）
 // @namespace    mlk-poc
-// @version      2026.10.07.2253
+// @version      2026.10.07.2316
 // @description  雀魂の牌譜画面で、受信した牌譜を天鳳JSONに変換する（通信は追加しない）
 // @match        https://game.mahjongsoul.com/*
 // @match        https://mahjongsoul.game.yo-star.com/*
@@ -568,7 +568,7 @@ return state;
 var MLK_UI = (function () {
 'use strict';
 var PANEL_ID = 'mlk-panel';
-var BUILD = '2026.10.07.2253'; // build.py が埋め込む版情報
+var BUILD = '2026.10.07.2316'; // build.py が埋め込む版情報
 var current = null; // {entry, game, tenhou, error}
 function el(tag, attrs, children) {
 var e = document.createElement(tag);
@@ -667,7 +667,7 @@ return '取得しました：' + t.title[0] + '／' + t.log.length + '局／' + 
 (w ? '（警告 ' + w + ' 件。診断情報をご確認ください）' : '');
 }
 function tenhouViewerUrl(obj) {
-return 'https://tenhou.net/6/#json=' + encodeURIComponent(JSON.stringify(obj));
+return 'https://tenhou.net/5/#json=' + encodeURIComponent(JSON.stringify(obj));
 }
 function render() {
 var old = document.getElementById(PANEL_ID);
