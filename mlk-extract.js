@@ -553,8 +553,11 @@ return state;
 var MLK_UI = (function () {
 'use strict';
 var PANEL_ID = 'mlk-panel';
-var BUILD = '2026.10.08.0016'; // build.py が埋め込む版情報
-var current = null; // {entry, game, tenhou, error}
+var BUILD = '2026.10.09.2320'; // build.py が埋め込む版情報
+var RECEIVER = 'https://akstnaaaaa99-glitch.github.io/mahjong_luck_analysis/receiver.html'; // 受け取り用ページの URL（build.py が埋め込む。未設定なら受け渡しボタンを出さない）
+var RECEIVER_ORIGIN = /^https?:/.test(RECEIVER) ? new URL(RECEIVER).origin : null;
+var current = null;
+var pendingPostMessage = null; // postMessage 方式で、受け取り側の準備完了を待っている JSON
 function el(tag, attrs, children) {
 var e = document.createElement(tag);
 Object.keys(attrs || {}).forEach(function (k) {
@@ -651,6 +654,37 @@ var w = t.mlk.warnings.length;
 return '取得しました：' + t.title[0] + '／' + t.log.length + '局／' + t.name.join('・') +
 (w ? '（警告 ' + w + ' 件。診断情報をご確認ください）' : '');
 }
+function b64url(u8) { return base64(u8).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function deflateB64url(text) {
+if (typeof CompressionStream === 'undefined') return Promise.resolve(null);
+var stream = new Blob([text]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+return new Response(stream).arrayBuffer().then(function (buf) { return b64url(new Uint8Array(buf)); });
+}
+function sha12(text) {
+return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function (buf) {
+return Array.from(new Uint8Array(buf)).map(function (b) { return (b < 16 ? '0' : '') + b.toString(16); }).join('').slice(0, 12);
+});
+}
+function prepareSend(cur) {
+var json = JSON.stringify(cur.tenhou);
+cur.send = { json: json, sha: null, z: null, error: null };
+Promise.all([sha12(json), deflateB64url(json)]).then(function (r) {
+cur.send.sha = r[0];
+cur.send.z = r[1];
+if (current === cur) render();
+}, function (e) {
+cur.send.error = String(e && e.message || e);
+if (current === cur) render();
+});
+}
+function kb(n) { return (n / 1024).toFixed(1) + 'KB'; }
+window.addEventListener('message', function (ev) {
+if (!RECEIVER_ORIGIN || ev.origin !== RECEIVER_ORIGIN || !ev.data || ev.data.type !== 'mlk-ready') return;
+if (!pendingPostMessage) return;
+ev.source.postMessage({ type: 'mlk-data', json: pendingPostMessage }, RECEIVER_ORIGIN);
+pendingPostMessage = null;
+toast('postMessage で渡しました');
+});
 function tenhouViewerUrl(obj) {
 return 'https://tenhou.net/5/#json=' + encodeURIComponent(JSON.stringify(obj));
 }
@@ -660,6 +694,29 @@ if (old) old.remove();
 var body = [];
 body.push(el('div', { style: 'font-weight:bold;margin-bottom:4px' }, ['雀魂 運解析 PoC（牌譜取り出し）']));
 body.push(el('div', { style: 'margin-bottom:6px;line-height:1.4' }, [summary()]));
+if (current && current.tenhou && current.send && RECEIVER_ORIGIN) {
+var send = current.send;
+body.push(el('div', { style: 'margin:6px 0 2px;color:#ffd479' }, [
+'アプリへの受け渡し（項目2）' + (send.sha ? '　SHA-256: ' + send.sha : '')
+]));
+var jsonUrl = RECEIVER + '#json=' + encodeURIComponent(send.json);
+body.push(button('アプリで開く：#json=（URL ' + kb(jsonUrl.length) + '）', function () {
+window.open(jsonUrl, '_blank');
+}));
+if (send.z) {
+var zUrl = RECEIVER + '#z=' + send.z;
+body.push(button('アプリで開く：圧縮 #z=（URL ' + kb(zUrl.length) + '）', function () {
+window.open(zUrl, '_blank');
+}));
+} else if (send.error) {
+body.push(el('div', {}, ['圧縮に失敗しました：' + send.error]));
+}
+body.push(button('アプリで開く：postMessage（URL を使わない）', function () {
+pendingPostMessage = send.json;
+var w = window.open(RECEIVER + '#pm', '_blank');
+if (!w) toast('新しいタブを開けませんでした（ポップアップがブロックされた可能性）');
+}));
+}
 if (current && current.tenhou) {
 var t = current.tenhou;
 body.push(button('天鳳ビューアで開く（拡張フィールドなし）', function () {
@@ -695,6 +752,7 @@ current = { entry: entry, game: null, tenhou: null, error: null };
 try {
 current.game = MLK_PB.decodeGameRecord(entry.bytes);
 current.tenhou = MLK_CONVERT.convert(current.game);
+prepareSend(current);
 } catch (e) {
 current.error = String(e && e.message || e);
 }
