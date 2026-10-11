@@ -1,0 +1,9 @@
+{
+  "criteria_version": "2026.10-1",
+  "note": "暫定基準（アプリ完成後に実際の牌譜で調整する。基本設計書 9章）。変更したら criteria_version を上げ、tools/precompute/haipai.py で分布を作り直す",
+  "haipai": {
+    "taatsu_weights": { "ryanmen": 1.0, "toitsu": 0.6, "kanchan_penchan": 0.5 },
+    "combine": { "method": "restandardize", "weights": { "shanten": 1, "ukeire_tiles": 1, "taatsu_quality": 1, "dora": 1 } }
+  },
+  "tsumo": { "improve_threshold_tiles": 1, "tenpai_wait_upgrade": true }
+}

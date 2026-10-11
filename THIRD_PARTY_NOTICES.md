@@ -6,9 +6,9 @@
   （参照したコミット: `8cf541a725d3`、2026-09-23）
 - 著作権表示: Akagi v3 / Copyright 2026 Shinkuan
 - ライセンス: Apache License 2.0（全文は `licenses/Akagi-LICENSE.txt`）
-- 利用箇所: `src/pb.js` の `SCHEMA`。牌譜の解読に必要なメッセージについて、フィールド名・フィールド番号・型だけを抜き出し、
+- 利用箇所: `src/pb.ts` の `SCHEMA`（PoC の `poc/extract/src/pb.js` を移植）。牌譜の解読に必要なメッセージについて、フィールド名・フィールド番号・型だけを抜き出し、
   JavaScript のオブジェクトとして書き直した（変更あり）。liqi.proto のファイルそのものは同梱していない。
-- `src/pb.js` の `xorDecode` は、Akagi の `src/bridge/majsoul/README.md` に記載された XOR の手順を参考に実装した。
+- `src/pb.ts` の `xorDecode` は、Akagi の `src/bridge/majsoul/README.md` に記載された XOR の手順を参考に実装した。
 
 ## 参考にしたが、コードは利用していないもの
 
