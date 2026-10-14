@@ -1,6 +1,6 @@
 {
  "schema_version": 1,
- "criteria_version": "2026.10-2",
+ "criteria_version": "2026.10-3",
  "generated_at": "2026-10-14T22:05:51+09:00",
  "generator": {
   "script": "tools/precompute/haipai.py",
@@ -598,5 +598,6 @@
     "sd": 2.143267
    }
   }
- }
+ },
+ "version_note": "2026.10-3 は基準の版 2026.10-2 で作った分布の版の表記だけを上げたもの（2026.10-3 の変更はツモ運の安全度・危険牌で、配牌運の分布には影響しない）"
 }
