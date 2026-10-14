@@ -1,8 +1,10 @@
 {
-  "criteria_version": "2026.10-1",
+  "criteria_version": "2026.10-2",
   "note": "暫定基準（アプリ完成後に実際の牌譜で調整する。基本設計書 9章）。変更したら criteria_version を上げ、tools/precompute/haipai.py で分布を作り直す（tsumo は事前計算がないので、分布の作り直しは不要）",
   "haipai": {
     "taatsu_weights": { "ryanmen": 1.0, "toitsu": 0.6, "kanchan_penchan": 0.5 },
+    "dora_weights": { "triplet": 2.0, "pair": 1.5, "run": 1.5, "ryanmen": 1.2, "kanchan": 1.0, "penchan": 0.9,
+                      "isolated_456": 0.9, "isolated_37_yakuhai": 0.8, "isolated_28": 0.7, "isolated_19_otakaze": 0.5 },
     "combine": { "method": "restandardize", "weights": { "shanten": 1, "ukeire_tiles": 1, "taatsu_quality": 1, "dora": 1 } }
   },
   "tsumo": { "weights": { "advance": 1.0, "improve": 0.5 }, "improve_threshold_tiles": 1, "tenpai_wait_upgrade": true }
