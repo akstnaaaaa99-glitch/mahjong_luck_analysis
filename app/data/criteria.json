@@ -1,13 +1,14 @@
 {
-  "criteria_version": "2026.10-5",
+  "criteria_version": "2026.10-6",
   "haipai_version": "2026.10-3",
-  "note": "暫定基準（アプリ完成後に実際の牌譜で調整する。基本設計書 9章）。criteria_version は基準全体の版で、どの値を変えても上げる（画面に表示）。haipai_version は配牌運の分布の版で、haipai を変えたときだけ上げ、tools/precompute/haipai.py で分布を作り直す（基本設計書 13.6）。2026.10-5：tsumo.weights.danger は当たり牌（聴牌しているすべての他家の和了牌。すべての巡で数える。基本設計書 13.10）の重み",
+  "note": "暫定基準（アプリ完成後に実際の牌譜で調整する。基本設計書 9章）。criteria_version は基準全体の版で、どの値を変えても上げる（画面に表示）。haipai_version は配牌運の分布の版で、haipai を変えたときだけ上げ、tools/precompute/haipai.py で分布を作り直す（基本設計書 13.6）。2026.10-5：tsumo.weights.danger は当たり牌（聴牌しているすべての他家の和了牌。すべての巡で数える。基本設計書 13.10）の重み。2026.10-6：tsumo.weights_by_state（ツモの前の押し・降りの状態ごとに変える重み）と tsumo.weights_self_riichi（自分の立直中の重み。状態より優先）を追加（基本設計書 13.12）",
   "haipai": {
     "taatsu_weights": { "ryanmen": 1.0, "toitsu": 0.6, "kanchan_penchan": 0.5 },
     "dora_weights": { "triplet": 2.0, "pair": 1.5, "run": 1.5, "ryanmen": 1.2, "kanchan": 1.0, "penchan": 0.9,
                       "isolated_456": 0.9, "isolated_37_yakuhai": 0.8, "isolated_28": 0.7, "isolated_19_otakaze": 0.5 },
     "combine": { "method": "restandardize", "weights": { "shanten": 1, "ukeire_tiles": 1, "taatsu_quality": 1, "dora": 1 } }
   },
-  "tsumo": { "weights": { "advance": 1.0, "improve": 0.5, "safe": 0.5, "danger": 1.0 }, "improve_threshold_tiles": 1, "tenpai_wait_upgrade": true },
+  "tsumo": { "weights": { "advance": 1.0, "improve": 0.5, "safe": 0.5, "danger": 1.0 },
+             "weights_by_state": { "押し": { "danger": 1.25 } }, "weights_self_riichi": { "danger": 2.0 }, "improve_threshold_tiles": 1, "tenpai_wait_upgrade": true },
   "pushfold": { "safe_cut_loss": 0.3, "safe_cut_lean": 0.15, "mawashi_fold_lean": 0.35, "push_rank_gap": 2, "push_lean_gap": 3, "fold_rank_gap": 1 }
 }
