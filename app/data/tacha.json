@@ -1,10 +1,12 @@
 {
- "tacha_version": "2026.10-1",
- "note": "他家運の期待値（基本設計書 15.6）。手元の実際の牌譜から tools/precompute/tacha.py で作る。数字だけで、プレイヤー名や牌譜の中身は含まない",
+ "tacha_version": "2026.10-2",
+ "note": "他家運の期待値（基本設計書 15.6・18章）。手元の実際の牌譜から tools/precompute/tacha.py で作る。数字だけで、プレイヤー名や牌譜の中身は含まない。avg_loss は打点の重みの平均（houju：放銃1回ごとの失点、tsumo：被ツモの人局ごとの失点）",
  "source": {
   "games": 23,
   "player_kyokus": 896,
-  "attacked_player_kyokus": 607
+  "attacked_player_kyokus": 607,
+  "houju": 110,
+  "tsumo": 207
  },
  "dist": {
   "親": {
@@ -50,12 +52,18 @@
  "rates": {
   "invisible": 0.05022321428571429,
   "attacker": 0.1070840197693575,
-  "fold": 0.013179571663920923
+  "fold": 0.013179571663920923,
+  "tsumo": 0.23102678571428573
  },
- "sd": 1.145453668534199,
+ "avg_loss": {
+  "houju": 5480.909090909091,
+  "tsumo": 2741.062801932367
+ },
+ "sd": 1.2187449353552133,
  "sizes_used": {
   "invisible": 2.0,
   "attacker": 1.0,
-  "fold": 1.0
+  "fold": 1.0,
+  "tsumo": 0.5
  }
 }
