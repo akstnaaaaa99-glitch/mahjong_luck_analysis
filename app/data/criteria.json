@@ -1,7 +1,7 @@
 {
-  "criteria_version": "2026.10-11",
+  "criteria_version": "2026.10-12",
   "haipai_version": "2026.10-3",
-  "note": "暫定基準（アプリ完成後に実際の牌譜で調整する。基本設計書 9章）。criteria_version は基準全体の版で、どの値を変えても上げる（画面に表示）。haipai_version は配牌運の分布の版で、haipai を変えたときだけ上げ、tools/precompute/haipai.py で分布を作り直す（基本設計書 13.6）。2026.10-5：tsumo.weights.danger は当たり牌（聴牌しているすべての他家の和了牌。すべての巡で数える。基本設計書 13.10）の重み。2026.10-6：tsumo.weights_by_state（ツモの前の押し・降りの状態ごとに変える重み）と tsumo.weights_self_riichi（自分の立直中の重み。状態より優先）を追加（基本設計書 13.12）。2026.10-7：安全度と押し・降りの攻撃者に副露2つ以上の他家を加え、染め手の補正を入れた（基本設計書 14章。値の設定はない）。2026.10-8：他家運（tacha）を追加。点の大きさは tacha.sizes、期待値は data/tacha.json（版 tacha_version。手元の牌譜から tools/precompute/tacha.py で作る。基本設計書 15章）。2026.10-9：和了・結果運（result）を追加。期待値（区分ごとの和了率と標準偏差）は data/result.json（版 result_version。手元の牌譜から tools/precompute/result.py で作る。基本設計書 16章）。2026.10-10：対局まとめ（summary）を追加。total_sd は総合スコアで4系統のまとめ（Σz÷√局数）の和を割る標準偏差（手元の牌譜23対局・92人から app/tests/local/validity-summary.test.ts で求めた。牌譜が増えたら求め直す。基本設計書 17章）。2026.10-11：打点（基本設計書 18章）。他家運の放銃・被ツモの点と、和了・結果運の和了した側の z に打点の重み（点÷平均、0.5〜3）を掛ける。tacha.sizes.tsumo は被ツモの点の大きさ。平均の点は data/tacha.json・result.json（版 2026.10-2）、summary.total_sd は求め直した値",
+  "note": "暫定基準（アプリ完成後に実際の牌譜で調整する。基本設計書 9章）。criteria_version は基準全体の版で、どの値を変えても上げる（画面に表示）。haipai_version は配牌運の分布の版で、haipai を変えたときだけ上げ、tools/precompute/haipai.py で分布を作り直す（基本設計書 13.6）。2026.10-5：tsumo.weights.danger は当たり牌（聴牌しているすべての他家の和了牌。すべての巡で数える。基本設計書 13.10）の重み。2026.10-6：tsumo.weights_by_state（ツモの前の押し・降りの状態ごとに変える重み）と tsumo.weights_self_riichi（自分の立直中の重み。状態より優先）を追加（基本設計書 13.12）。2026.10-7：安全度と押し・降りの攻撃者に副露2つ以上の他家を加え、染め手の補正を入れた（基本設計書 14章。値の設定はない）。2026.10-8：他家運（tacha）を追加。点の大きさは tacha.sizes、期待値は data/tacha.json（版 tacha_version。手元の牌譜から tools/precompute/tacha.py で作る。基本設計書 15章）。2026.10-9：和了・結果運（result）を追加。期待値（区分ごとの和了率と標準偏差）は data/result.json（版 result_version。手元の牌譜から tools/precompute/result.py で作る。基本設計書 16章）。2026.10-10：対局まとめ（summary）を追加。total_sd は総合スコアで4系統のまとめ（Σz÷√局数）の和を割る標準偏差（手元の牌譜23対局・92人から app/tests/local/validity-summary.test.ts で求めた。牌譜が増えたら求め直す。基本設計書 17章）。2026.10-11：打点（基本設計書 18章）。他家運の放銃・被ツモの点と、和了・結果運の和了した側の z に打点の重み（点÷平均、0.5〜3）を掛ける。tacha.sizes.tsumo は被ツモの点の大きさ。平均の点は data/tacha.json・result.json（版 2026.10-2）、summary.total_sd は求め直した値。2026.10-12：押しの妥当さ（基本設計書 19章）。tacha.push_coef は放銃した打牌の分類ごとの係数（tenpai 押し・聴牌、iishanten 押し・1シャンテン、far 押し・2シャンテン以上、mawashi 回し打ち、avoid 安牌切り・降り）。割り戻しは data/tacha.json の push_norm（版 2026.10-3）",
   "haipai": {
     "taatsu_weights": { "ryanmen": 1.0, "toitsu": 0.6, "kanchan_penchan": 0.5 },
     "dora_weights": { "triplet": 2.0, "pair": 1.5, "run": 1.5, "ryanmen": 1.2, "kanchan": 1.0, "penchan": 0.9,
@@ -11,7 +11,8 @@
   "tsumo": { "weights": { "advance": 1.0, "improve": 0.5, "safe": 0.5, "danger": 1.0 },
              "weights_by_state": { "押し": { "danger": 1.25 } }, "weights_self_riichi": { "danger": 2.0 }, "improve_threshold_tiles": 1, "tenpai_wait_upgrade": true },
   "pushfold": { "safe_cut_loss": 0.3, "safe_cut_lean": 0.15, "mawashi_fold_lean": 0.35, "push_rank_gap": 2, "push_lean_gap": 3, "fold_rank_gap": 1 },
-  "tacha": { "tacha_version": "2026.10-2", "sizes": { "invisible": 2.0, "attacker": 1.0, "fold": 1.0, "tsumo": 0.5 } },
+  "tacha": { "tacha_version": "2026.10-3", "sizes": { "invisible": 2.0, "attacker": 1.0, "fold": 1.0, "tsumo": 0.5 },
+             "push_coef": { "tenpai": 1.5, "iishanten": 1.0, "far": 0.5, "mawashi": 1.0, "avoid": 1.5 } },
   "result": { "result_version": "2026.10-2" },
-  "summary": { "total_sd": 2.60 }
+  "summary": { "total_sd": 2.62 }
 }

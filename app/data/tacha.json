@@ -1,5 +1,5 @@
 {
- "tacha_version": "2026.10-2",
+ "tacha_version": "2026.10-3",
  "note": "他家運の期待値（基本設計書 15.6・18章）。手元の実際の牌譜から tools/precompute/tacha.py で作る。数字だけで、プレイヤー名や牌譜の中身は含まない。avg_loss は打点の重みの平均（houju：放銃1回ごとの失点、tsumo：被ツモの人局ごとの失点）",
  "source": {
   "games": 23,
@@ -59,11 +59,19 @@
   "houju": 5480.909090909091,
   "tsumo": 2741.062801932367
  },
- "sd": 1.2187449353552133,
+ "push_norm": 1.225,
+ "sd": 1.2301489147936788,
  "sizes_used": {
   "invisible": 2.0,
   "attacker": 1.0,
   "fold": 1.0,
   "tsumo": 0.5
+ },
+ "push_coef_used": {
+  "tenpai": 1.5,
+  "iishanten": 1.0,
+  "far": 0.5,
+  "mawashi": 1.0,
+  "avoid": 1.5
  }
 }
